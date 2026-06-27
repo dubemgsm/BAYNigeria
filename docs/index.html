@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EBI: BAY States Educational Access & Conflict Tracker</title>
+    
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS v3 CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    
+    <style>
+        .custom-popup .leaflet-popup-content-wrapper {
+            background: #1e293b;
+            color: #f8fafc;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+        }
+        .custom-popup .leaflet-popup-tip {
+            background: #1e293b;
+            border: 1px solid #334155;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Header Panel -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-lg shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="h-3 w-3 rounded-full bg-rose-500 animate-ping"></div>
+            <h1 class="text-xl md:text-2xl font-bold tracking-tight bg-gradient-to-r from-slate-100 to-slate-400 bg-clip-text text-transparent">
+                EBI: BAY States Educational Access & Conflict Tracker
+            </h1>
+        </div>
+        <div class="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-full border border-slate-800 text-xs">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span class="text-slate-400 font-medium tracking-wide">FIELD NETWORK FEED ACTIVE</span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 flex flex-col p-4 md:p-6 gap-6 overflow-hidden">
+        
+        <!-- KPI Metrics Row -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 shrink-0">
+            <!-- Card 1: Total Registered Schools -->
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 shadow-xl hover:border-slate-700 transition duration-300 relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition duration-300 text-emerald-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-28 w-28" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path d="M12 14l9-5-9-5-9 5 9 5z" />
+                        <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                    </svg>
+                </div>
+                <h3 class="text-slate-400 text-sm font-semibold tracking-wider uppercase mb-1">Total Registered Schools</h3>
+                <div id="kpi-total" class="text-3xl md:text-4xl font-bold text-emerald-400">0</div>
+                <p class="text-slate-500 text-xs mt-2">Active institutions in BAY registry</p>
+            </div>
+
+            <!-- Card 2: Compromised Schools -->
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 shadow-xl hover:border-slate-700 transition duration-300 relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition duration-300 text-rose-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-28 w-28" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h3 class="text-slate-400 text-sm font-semibold tracking-wider uppercase mb-1">Schools Compromised by Insecurity</h3>
+                <div id="kpi-compromised" class="text-3xl md:text-4xl font-bold text-rose-500 font-mono">0</div>
+                <p class="text-slate-500 text-xs mt-2">Located within active conflict corridors (Red)</p>
+            </div>
+
+            <!-- Card 3: Disruption Rate -->
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 shadow-xl hover:border-slate-700 transition duration-300 relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition duration-300 text-amber-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-28 w-28" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
+                    </svg>
+                </div>
+                <h3 class="text-slate-400 text-sm font-semibold tracking-wider uppercase mb-1">Infrastructure Disruption Rate</h3>
+                <div id="kpi-rate" class="text-3xl md:text-4xl font-bold text-amber-500 font-mono">0.0%</div>
+                <p class="text-slate-500 text-xs mt-2">Ratio of compromised to total schools</p>
+            </div>
+        </div>
+
+        <!-- Columns Layout -->
+        <div class="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
+            <!-- Left Column: Leaflet Map -->
+            <div class="lg:w-2/3 bg-slate-900 border border-slate-800 rounded-2xl p-2 flex flex-col relative h-[450px] lg:h-auto shadow-xl">
+                <div id="map" class="w-full h-full rounded-xl z-10"></div>
+                <!-- Loading indicator overlay -->
+                <div id="map-loading" class="absolute inset-0 bg-slate-900/90 z-20 flex items-center justify-center rounded-2xl transition duration-500">
+                    <div class="flex flex-col items-center gap-3">
+                        <div class="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+                        <p class="text-slate-400 text-sm font-medium">Resolving school spatial records...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Control & Verification Panel -->
+            <div class="lg:w-1/3 flex flex-col gap-6 overflow-y-auto lg:max-h-full pr-1">
+                
+                <!-- Filter Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                    <h2 class="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2 border-b border-slate-800 pb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                        </svg>
+                        Operational Filters
+                    </h2>
+                    
+                    <div class="space-y-5">
+                        <!-- State Filter -->
+                        <div>
+                            <label class="block text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">State Jurisdiction</label>
+                            <select id="filter-state" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-emerald-500 transition duration-200">
+                                <option value="ALL">All States (Borno, Adamawa, Yobe)</option>
+                                <option value="Borno">Borno State</option>
+                                <option value="Adamawa">Adamawa State</option>
+                                <option value="Yobe">Yobe State</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Time Window Slider -->
+                        <div>
+                            <div class="flex justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
+                                <span>Conflict Time Window</span>
+                                <span id="slider-val" class="text-emerald-400">90 Days</span>
+                            </div>
+                            <input id="filter-time" type="range" min="30" max="90" step="30" value="90" class="w-full h-2 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-emerald-500" />
+                            <div class="flex justify-between text-slate-500 text-[10px] mt-1.5 px-1">
+                                <span>30d (Recent)</span>
+                                <span>60d (Extended)</span>
+                                <span>90d (Default)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Field Verification Panel -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex-1 flex flex-col">
+                    <h2 class="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2 border-b border-slate-800 pb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-rose-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        Human-in-the-Loop Field Verification
+                    </h2>
+                    
+                    <div id="verification-default" class="text-slate-400 text-sm space-y-4 flex-1 flex flex-col justify-center items-center py-6">
+                        <div class="p-4 bg-slate-950 rounded-full border border-slate-800 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                            </svg>
+                        </div>
+                        <p class="text-center font-medium">Awaiting bi-weekly ground-truth validation from field teams.</p>
+                        <p class="text-slate-500 text-xs text-center px-4">Click a school marker on the map to inspect records and submit a field override.</p>
+                    </div>
+
+                    <!-- Interactive Override Tool (Hidden by Default) -->
+                    <div id="verification-detail" class="hidden flex-1 flex flex-col gap-4 text-sm">
+                        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
+                            <div>
+                                <span class="text-xs text-slate-500 font-semibold uppercase tracking-wider block">School Name</span>
+                                <span id="detail-name" class="font-bold text-slate-100 text-base">Government Junior Secondary School</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <span class="text-xs text-slate-500 font-semibold uppercase tracking-wider block">State</span>
+                                    <span id="detail-state" class="font-semibold text-slate-300">Borno</span>
+                                </div>
+                                <div>
+                                    <span class="text-xs text-slate-500 font-semibold uppercase tracking-wider block">Level / Type</span>
+                                    <span id="detail-level" class="font-semibold text-slate-300">Junior Secondary</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 border-t border-slate-800 pt-3">
+                                <div>
+                                    <span class="text-xs text-slate-500 font-semibold uppercase tracking-wider block">Calculated Vulnerability</span>
+                                    <span id="detail-vulnerability" class="font-bold px-2 py-0.5 rounded text-xs inline-block mt-1">High</span>
+                                </div>
+                                <div>
+                                    <span class="text-xs text-slate-500 font-semibold uppercase tracking-wider block">Verification Override</span>
+                                    <span id="detail-override" class="font-bold px-2 py-0.5 rounded text-xs inline-block mt-1 bg-slate-900 text-slate-500">None</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Apply Ground-Truth Status Override</span>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button id="btn-override-accessible" class="bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Mark Accessible
+                                </button>
+                                <button id="btn-override-inaccessible" class="bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Mark Inaccessible
+                                </button>
+                            </div>
+                            <button id="btn-override-reset" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-2 rounded-xl transition duration-200 text-xs">
+                                Reset to Model Default
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- Client Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
